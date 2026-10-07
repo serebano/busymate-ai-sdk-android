@@ -1,0 +1,16 @@
+{
+  "sdk": "Busymate AI android",
+  "version": "1.0.0",
+  "identityWire": {
+    "legacy": 1,
+    "v2": 2,
+    "v2Build": "2.0.0"
+  },
+  "microphoneWire": 1,
+  "microphoneAdapter": "1.0.0",
+  "files": {
+    "sdk/src/main/java/ai/busymate/BusymateAI.kt": "b999eba03d425c2d23a2979a5a9f61e2dd2f2cd16892330b15fb03b567f556fa",
+    "sdk/src/main/java/ai/busymate/BusymateMicrophone.kt": "fa9cfdd6a6e80d59bad50d3273ceedd8dba6497a5ee7e494dd3af8c4915f1f23",
+    "sdk/src/main/java/ai/busymate/BusymateBridge.kt": "cccf0798a509355ff525e18356f63ea2e9fb5f93a8fd78c15fc230c452a711ef"
+  }
+}
