@@ -1,0 +1,25 @@
+name: SDK checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  sdk-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Verify immutable source
+        run: python3 scripts/verify-release.py
+      - name: Build SDK and consumer APK
+        run: ./gradlew :sdk:assembleRelease :example-app:assembleDebug :example-app:testDebugUnitTest :sdk:lintRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: busymate-ai-sdk-android-1.0.0
+          path: sdk/build/outputs/aar/sdk-release.aar
