@@ -1,6 +1,8 @@
 package ai.busymate.sample
 
 import java.net.URI
+import android.webkit.WebView
+import ai.busymate.bridge.BusymateBridge
 
 data class DemoSettings(
     val assistant: String = "busyproxy",
@@ -13,6 +15,19 @@ data class DemoSettings(
     val accountId: String = "",
     val backendBearer: String = "",
 ) {
+    fun identityConfig(
+        mint: (Map<String, Any?>, (BusymateBridge.MintResult) -> Unit) -> Unit,
+        log: (String) -> Unit,
+        close: () -> Unit,
+        replaced: (WebView) -> Unit,
+    ) = BusymateBridge.Config(
+        assistant = assistant, origins = origins(),
+        account = { if (DemoSession.signedIn) accountId.takeIf { it.isNotEmpty() } else null },
+        mint = mint,
+        onAction = if (actionsEnabled) ({ name, _ -> log("Native action: $name"); name == "ready" }) else null,
+        onClose = if (closeEnabled) ({ log("Chat requested host close."); close() }) else null,
+        onReplaced = replaced,
+    )
     fun origins(): List<String> = extraOrigins.split(',').map { it.trim() }.filter { it.isNotEmpty() }
     fun validationError(): String? {
         if (!Regex("^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$").matches(assistant)) return "Use a valid assistant slug."

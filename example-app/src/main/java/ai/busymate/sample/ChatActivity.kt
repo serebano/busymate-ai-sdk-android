@@ -3,6 +3,7 @@ package ai.busymate.sample
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.Build
 import android.provider.Settings
 import android.text.InputType
 import android.webkit.PermissionRequest
@@ -67,13 +68,10 @@ class ChatActivity : ComponentActivity() {
         column.addView(ScrollView(this).apply { addView(settings) }, LinearLayout.LayoutParams(-1, 420))
         webView = WebView(this)
         column.addView(webView, LinearLayout.LayoutParams(-1, 0, 1f)); setContentView(column)
-        BusymateBridge.install(webView, BusymateBridge.Config(
-            assistant = current.assistant, origins = current.origins(),
-            account = { if (DemoSession.signedIn) current.accountId.takeIf { it.isNotEmpty() } else null },
+        BusymateBridge.install(webView, current.identityConfig(
             mint = { request, done -> log("Backend mint requested (sensitive fields omitted)."); BackendMint.mint(current, request, done) },
-            onAction = { name, _ -> log("Native action: $name"); current.actionsEnabled && name == "ready" },
-            onClose = { log("Chat requested host close."); if (current.closeEnabled) finish() },
-            onReplaced = { replacement -> webView = replacement; log("Identity SDK replaced renderer WebView.") },
+            log = { log(it) }, close = { finish() },
+            replaced = { replacement -> webView = replacement; log("Identity SDK replaced renderer WebView.") },
         ))
         if (current.microphoneEnabled) microphone = BusymateMicrophone(this, webView, BusymateBridge.allowedOrigins(
             BusymateBridge.Config(current.assistant, current.origins(), { null }, { _, done -> done(BusymateBridge.MintResult.NotSignedIn) })).toSet())
@@ -87,7 +85,7 @@ class ChatActivity : ComponentActivity() {
             override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
                 log("Renderer terminated; reconstructing host safely.")
                 if (current.microphoneEnabled) { recreate(); return true }
-                return BusymateBridge.onRenderProcessGone(view, detail)
+                return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) BusymateBridge.onRenderProcessGone(view, detail) else false
             }
         }
         webView.loadUrl(current.chatUrl)

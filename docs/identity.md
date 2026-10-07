@@ -11,3 +11,5 @@ For v1, call `identityChanged()` after login/token rotation/account switch, `sig
 Keep navigation restricted to your trusted chat URLs. External URLs should open via the SDK's external/auth callback rather than leave a privileged bridge exposed to arbitrary pages. Identity availability failures keep chat anonymous (`not_signed_in`, `mint_failed`, `unsupported`); never log token, nonce, raw account ID or audio while troubleshooting.
 
 The byte-frozen [v2 wire contract](../CONTRACT-v2.md) defines hello/state/mint/open/action, error envelopes, version negotiation and events. Its no-new-permissions statement applies to the identity bridge alone. Optional microphone integration explicitly adds microphone permission.
+
+The example authenticated-backend client refuses redirects to prevent forwarding the app session credential. Configure the final HTTPS mint endpoint directly. Demo sign-in/out controls change the native account reader; your own app authentication and backend session logout remain your responsibility.
