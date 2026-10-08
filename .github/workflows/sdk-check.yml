@@ -4,6 +4,7 @@ on:
     branches: [main]
     tags: ['*']
   pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -30,3 +31,19 @@ jobs:
         with:
           name: busymate-ai-sdk-android-1.0.0
           path: sdk/build/outputs/aar/sdk-release.aar
+      - name: Prepare hosted runner emulator
+        run: |
+          sdkmanager 'emulator' 'system-images;android-35;google_apis;x86_64'
+          sudo chmod a+rw /dev/kvm
+      - name: Run actual demo on an isolated Android emulator
+        run: bash scripts/test-runtime.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-native-runtime-results
+          include-hidden-files: true
+          path: |
+            example-app/build/outputs/androidTest-results/
+            example-app/build/reports/androidTests/
+            .runtime-results/
+          retention-days: 7
