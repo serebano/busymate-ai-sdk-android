@@ -41,6 +41,7 @@ jobs:
         if: always()
         with:
           name: android-native-runtime-results
+          include-hidden-files: true
           path: |
             example-app/build/outputs/androidTest-results/
             example-app/build/reports/androidTests/

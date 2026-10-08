@@ -25,7 +25,20 @@ cleanup() {
 trap cleanup EXIT
 "$SDK_ROOT/emulator/emulator" -avd "$AVD_NAME" -port 5580 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RESULTS/emulator.log" 2>&1 &
 EMULATOR_PID=$!
-timeout 180 adb wait-for-device
+for ((i=0; i<90; i++)); do
+  if [[ "$(adb get-state 2>/dev/null || true)" == 'device' ]]; then break; fi
+  if ! kill -0 "$EMULATOR_PID" 2>/dev/null; then
+    cat "$RESULTS/emulator.log" >&2
+    echo 'Emulator process exited before adb connected.' >&2
+    exit 1
+  fi
+  sleep 2
+done
+if [[ "$(adb get-state 2>/dev/null || true)" != 'device' ]]; then
+  cat "$RESULTS/emulator.log" >&2
+  echo 'Emulator did not connect to adb within180seconds.' >&2
+  exit 1
+fi
 for ((i=0; i<120; i++)); do
   [[ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == '1' ]] && break
   kill -0 "$EMULATOR_PID"
