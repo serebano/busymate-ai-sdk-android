@@ -2,12 +2,16 @@ package ai.busymate.sample
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.Configurator
+import androidx.test.uiautomator.Condition
 import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.UiObject2
 import androidx.test.uiautomator.Until
 import java.io.File
 import java.util.regex.Pattern
@@ -18,12 +22,23 @@ import org.junit.runner.RunWith
 
 /** Four separate invocations, each with fresh owned-demo data/permissions. */
 @RunWith(AndroidJUnit4::class)
+@RequiresApi(34)
 class FirstTapPermissionTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context = instrumentation.targetContext
     private val device = UiDevice.getInstance(instrumentation)
     private val permissionPackage = Pattern.compile("com\\.(android|google\\.android)\\.permissioncontroller")
     private fun permissionWindow() = By.pkg(permissionPackage)
+    private fun hostedControl(label: String, timeout: Long): UiObject2? =
+        device.wait(object : Condition<UiDevice, UiObject2> {
+            override fun apply(device: UiDevice): UiObject2? {
+                // WebView hydration can replace the composer after its first
+                // accessibility snapshot. Query fresh nodes on every poll;
+                // never infer a tap target from screenshot coordinates.
+                assertTrue("Accessibility cache must refresh", instrumentation.uiAutomation.clearCache())
+                return device.findObject(By.text(label).pkg(context.packageName))
+            }
+        }, timeout)
     private fun evidence(name: String) {
         val directory = File(context.getExternalFilesDir(null), "permissions").apply { mkdirs() }
         assertTrue(device.takeScreenshot(File(directory, "$name.png")))
@@ -32,6 +47,7 @@ class FirstTapPermissionTest {
     private fun firstTap(source: String, grant: Boolean) {
         assumeTrue("Use gated test-permissions.sh after the native site is live",
             InstrumentationRegistry.getArguments().getString("permissionSuite") == "1")
+        assertTrue("Permission harness requires API34+", Build.VERSION.SDK_INT >= 34)
         val idleTimeout = Configurator.getInstance().getWaitForIdleTimeout()
         // Poll explicit native/WebView conditions. Avoid a generic idle wait
         // after granting permission, so the real app can be closed promptly.
@@ -42,8 +58,8 @@ class FirstTapPermissionTest {
                     assertEquals(PackageManager.PERMISSION_DENIED, context.checkSelfPermission(Manifest.permission.RECORD_AUDIO))
                     // Android WebView exposes these actual hosted aria-labels
                     // as Button text (verified in the smoke hierarchy).
-                    val dictation = device.wait(Until.findObject(By.text("Start voice input").pkg(context.packageName)), 90_000)
-                    val voice = device.wait(Until.findObject(By.text("Enter voice mode").pkg(context.packageName)), 15_000)
+                    val dictation = hostedControl("Start voice input", 90_000)
+                    val voice = hostedControl("Enter voice mode", 15_000)
                     assertNotNull("Actual hosted dictation must render", dictation)
                     assertNotNull("Actual hosted voice mode must render", voice)
                     assertFalse("Opening chat must not request OS permission", device.hasObject(permissionWindow()))
