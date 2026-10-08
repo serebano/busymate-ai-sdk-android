@@ -3,12 +3,14 @@ package ai.busymate.sample
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.SystemClock
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.Configurator
 import androidx.test.uiautomator.Condition
+import androidx.test.uiautomator.StaleObjectException
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiObject2
 import androidx.test.uiautomator.Until
@@ -27,20 +29,56 @@ class FirstTapPermissionTest {
     private val device = UiDevice.getInstance(instrumentation)
     private val permissionPackage = Pattern.compile("com\\.(android|google\\.android)\\.permissioncontroller")
     private fun permissionWindow() = By.pkg(permissionPackage)
-    private fun hostedControl(label: String, timeout: Long): UiObject2? =
-        device.wait(object : Condition<UiDevice, UiObject2> {
-            override fun apply(device: UiDevice): UiObject2? {
-                // WebView hydration can replace the composer after its first
-                // accessibility snapshot. Query fresh nodes on every poll;
-                // never infer a tap target from screenshot coordinates.
-                if (Build.VERSION.SDK_INT >= 34) {
-                    assertTrue("Accessibility cache must refresh", instrumentation.uiAutomation.clearCache())
-                } else {
-                    error("Permission harness requires API34+")
+    private fun freshAccessibility() {
+        if (Build.VERSION.SDK_INT >= 34) {
+            assertTrue("Accessibility cache must refresh", instrumentation.uiAutomation.clearCache())
+        } else {
+            error("Permission harness requires API34+")
+        }
+    }
+    private fun hostedControl(label: String): UiObject2? =
+        device.findObject(By.text(label).pkg(context.packageName))
+    private fun waitForHostedComposer() {
+        var previousBounds = ""
+        var stableSince = 0L
+        assertTrue("Both actual hosted controls must render and settle", device.wait(object : Condition<UiDevice, Boolean> {
+            override fun apply(device: UiDevice): Boolean {
+                freshAccessibility()
+                try {
+                    val mic = hostedControl("Start voice input")
+                    val voice = hostedControl("Enter voice mode")
+                    val bounds = if (mic != null && voice != null && mic.isEnabled && voice.isEnabled &&
+                        !mic.visibleBounds.isEmpty && !voice.visibleBounds.isEmpty)
+                        "${mic.visibleBounds}:${voice.visibleBounds}" else ""
+                    if (bounds.isEmpty() || bounds != previousBounds) {
+                        previousBounds = bounds
+                        stableSince = SystemClock.uptimeMillis()
+                        return false
+                    }
+                    return SystemClock.uptimeMillis() - stableSince >= 1_000
+                } catch (_: StaleObjectException) {
+                    previousBounds = ""
+                    return false
                 }
-                return device.findObject(By.text(label).pkg(context.packageName))
             }
-        }, timeout)
+        }, 90_000))
+    }
+    private fun tapHostedControl(label: String) {
+        assertTrue("Real hosted control must remain tappable", device.wait(object : Condition<UiDevice, Boolean> {
+            override fun apply(device: UiDevice): Boolean {
+                freshAccessibility()
+                val control = hostedControl(label) ?: return false
+                try {
+                    control.click()
+                    return true
+                } catch (_: StaleObjectException) {
+                    // UiObject2 rejects a replaced node before injecting input.
+                    // Reacquire by label; never retry a completed tap.
+                    return false
+                }
+            }
+        }, 5_000))
+    }
     private fun evidence(name: String) {
         val directory = File(context.getExternalFilesDir(null), "permissions").apply { mkdirs() }
         assertTrue(device.takeScreenshot(File(directory, "$name.png")))
@@ -60,13 +98,10 @@ class FirstTapPermissionTest {
                     assertEquals(PackageManager.PERMISSION_DENIED, context.checkSelfPermission(Manifest.permission.RECORD_AUDIO))
                     // Android WebView exposes these actual hosted aria-labels
                     // as Button text (verified in the smoke hierarchy).
-                    val dictation = hostedControl("Start voice input", 90_000)
-                    val voice = hostedControl("Enter voice mode", 15_000)
-                    assertNotNull("Actual hosted dictation must render", dictation)
-                    assertNotNull("Actual hosted voice mode must render", voice)
+                    waitForHostedComposer()
                     assertFalse("Opening chat must not request OS permission", device.hasObject(permissionWindow()))
                     evidence("01-$source-visible-hosted-chat-before-tap-no-prompt")
-                    (if (source == "dictation") dictation else voice)!!.click()
+                    tapHostedControl(if (source == "dictation") "Start voice input" else "Enter voice mode")
 
                     assertTrue("First hosted tap must open the actual Android dialog",
                         device.wait(Until.hasObject(permissionWindow()), 15_000))
