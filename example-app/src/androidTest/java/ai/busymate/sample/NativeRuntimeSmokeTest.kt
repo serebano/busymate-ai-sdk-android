@@ -11,6 +11,8 @@ import androidx.test.uiautomator.UiScrollable
 import androidx.test.uiautomator.UiSelector
 import androidx.test.uiautomator.Until
 import java.io.File
+import java.util.regex.Pattern
+import org.junit.After
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -24,11 +26,19 @@ class NativeRuntimeSmokeTest {
         val directory = File(context.getExternalFilesDir(null), "runtime").apply { mkdirs() }
         assertTrue(device.takeScreenshot(File(directory, "$name.png")))
     }
-    private fun control(text: String) = device.findObject(UiSelector().text(text))
+    // Native Button themes expose an all-caps label to accessibility. Match the
+    // label without case while keeping its complete literal text (including /).
+    private fun selector(text: String) = UiSelector().textMatches("(?i)" + Pattern.quote(text))
+    private fun control(text: String) = device.findObject(selector(text))
     private fun scrollTo(text: String) {
         val scroll = UiScrollable(UiSelector().scrollable(true).instance(0))
         scroll.setMaxSearchSwipes(25)
-        assertTrue("Settings control is reachable: $text", scroll.scrollIntoView(UiSelector().text(text)))
+        assertTrue("Settings control is reachable: $text", scroll.scrollIntoView(selector(text)))
+    }
+    @After fun retainRuntimeDiagnostics() {
+        val directory = File(context.getExternalFilesDir(null), "runtime").apply { mkdirs() }
+        device.dumpWindowHierarchy(File(directory, "final-window.xml"))
+        screenshot("06-final-window")
     }
     private fun noMicrophonePermission() {
         assertEquals(PackageManager.PERMISSION_DENIED, context.checkSelfPermission(Manifest.permission.RECORD_AUDIO))

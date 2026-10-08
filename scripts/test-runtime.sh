@@ -53,6 +53,14 @@ done
 adb shell settings put global window_animation_scale 0
 adb shell settings put global transition_animation_scale 0
 adb shell settings put global animator_duration_scale 0
-./gradlew :example-app:connectedDebugAndroidTest --no-daemon
-adb pull /sdcard/Android/data/ai.busymate.sample/files/runtime "$RESULTS/screenshots"
-adb shell dumpsys package ai.busymate.sample > "$RESULTS/package-permissions.txt"
+TEST_STATUS=0
+./gradlew :example-app:connectedDebugAndroidTest --no-daemon || TEST_STATUS=$?
+# Retain the real rendered hierarchy and screenshots even when an assertion
+# fails; reporting must never replace the instrumentation exit status.
+adb pull /sdcard/Android/data/ai.busymate.sample/files/runtime "$RESULTS/screenshots" || {
+  [[ "$TEST_STATUS" -ne 0 ]] || TEST_STATUS=1
+}
+adb shell dumpsys package ai.busymate.sample > "$RESULTS/package-permissions.txt" || {
+  [[ "$TEST_STATUS" -ne 0 ]] || TEST_STATUS=1
+}
+exit "$TEST_STATUS"
