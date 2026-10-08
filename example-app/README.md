@@ -13,3 +13,19 @@ History, knowledge retrieval, tools, human handoff, themes, locale and voice ava
 Renderer crash recovery: the v2 identity SDK exposes `onRenderProcessGone` and `onReplaced`, but its frozen recovery only reinstalls identity. With microphone active, recreate the Activity early so its Activity Result registration remains valid; do not install a microphone adapter late inside `onReplaced`. The actual WebViewClient forwards renderer termination: microphone-enabled mode recreates the Activity; microphone-disabled mode invokes the frozen SDK recovery and tracks onReplaced. Apply/recreation also exercises safe app-owned reconstruction. Disabling the microphone adapter causes this example host to deny media requests; it does not silently enable an alternate native permission flow. It has no arbitrary process-kill button or fake renderer event.
 
 Ten unit tests validate settings boundaries (HTTPS, exact origins, assistant syntax), actual SDK callback enable/disable semantics, backend nonce mapping and a real loopback redirect refusal. CI additionally compiles actual SDK, APK and runs SDK and app Android lint. Authenticated mint calls refuse all HTTP redirects; configure the final HTTPS backend endpoint directly. Physical OS prompt/device behavior and your backend integration require the acceptance checklist in `../docs/microphone.md`.
+
+## Reproducible emulator runtime smoke
+
+CI runs `scripts/test-runtime.sh` on the existing Linux SDK-check runner with an
+isolated Android35 emulator and then uploads instrumentation results/screenshots.
+The actual example APK is tested: native microphone starts ON, OFF survives Apply
+and real Activity recreation, Reset restores the guest defaults, and foreground
+resume leaves `RECORD_AUDIO` ungranted without a permission dialog. The test opens
+the hosted guest WebView but does not claim its backend response is verified.
+
+This test sends no chat message, grants no microphone permission and records no
+audio. It is emulator lifecycle/configuration coverage; first-tap grant/refusal,
+revocation, cancellation, physical audio and real authenticated backend flows
+remain separate acceptance checks in the microphone guide. For local execution,
+use a dedicated Linux Android SDK with the required system image and KVM; the
+script owns and removes only the AVD it creates.
