@@ -5,6 +5,15 @@ on:
     tags: ['*']
   pull_request:
   workflow_dispatch:
+    inputs:
+      hosted_commit:
+        description: 'Verified live native-chat commit (leave both inputs empty for ordinary smoke)'
+        required: false
+        type: string
+      hosted_build:
+        description: 'Matching verified live build number; enables real OS grant/deny acceptance'
+        required: false
+        type: string
 permissions:
   contents: read
 jobs:
@@ -12,6 +21,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Require the declared native-chat live revision before permission acceptance
+        if: github.event_name == 'workflow_dispatch' && (inputs.hosted_commit != '' || inputs.hosted_build != '')
+        env:
+          BUSYMATE_HOSTED_COMMIT: ${{ inputs.hosted_commit }}
+          BUSYMATE_HOSTED_BUILD: ${{ inputs.hosted_build }}
+        run: python3 scripts/assert-hosted-release.py "$RUNNER_TEMP/native-permission-live-guard.json"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -36,9 +51,10 @@ jobs:
           sdkmanager 'emulator' 'system-images;android-35;google_apis;x86_64'
           sudo chmod a+rw /dev/kvm
       - name: Run actual demo on an isolated Android emulator
+        if: github.event_name != 'workflow_dispatch' || (inputs.hosted_commit == '' && inputs.hosted_build == '')
         run: bash scripts/test-runtime.sh
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && (github.event_name != 'workflow_dispatch' || (inputs.hosted_commit == '' && inputs.hosted_build == ''))
         with:
           name: android-native-runtime-results
           include-hidden-files: true
@@ -46,4 +62,17 @@ jobs:
             example-app/build/outputs/androidTest-results/
             example-app/build/reports/androidTests/
             .runtime-results/
+          retention-days: 7
+      - name: Verify first-tap OS permission against the confirmed live build
+        if: github.event_name == 'workflow_dispatch' && (inputs.hosted_commit != '' || inputs.hosted_build != '')
+        env:
+          BUSYMATE_HOSTED_COMMIT: ${{ inputs.hosted_commit }}
+          BUSYMATE_HOSTED_BUILD: ${{ inputs.hosted_build }}
+        run: bash scripts/test-permissions.sh
+      - uses: actions/upload-artifact@v4
+        if: always() && github.event_name == 'workflow_dispatch' && (inputs.hosted_commit != '' || inputs.hosted_build != '')
+        with:
+          name: android-first-tap-permission-results
+          include-hidden-files: true
+          path: .permission-results/
           retention-days: 7

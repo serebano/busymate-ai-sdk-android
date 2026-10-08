@@ -29,3 +29,35 @@ revocation, cancellation, physical audio and real authenticated backend flows
 remain separate acceptance checks in the microphone guide. For local execution,
 use a dedicated Linux Android SDK with the required system image and KVM; the
 script owns and removes only the AVD it creates.
+
+## First-tap OS permission acceptance (explicit live build only)
+
+After the release owner confirms the hosted native microphone implementation is
+live, dispatch **SDK checks** with both `hosted_commit` (the verified 9–40 hex
+commit) and `hosted_build` (matching build number). Leaving both fields empty
+runs the ordinary smoke test. The permission suite checks the fixed public
+`https://busymate.ai/api/version` before and after each case; a different build,
+missing inputs, zero executed tests or skipped cases fails acceptance.
+
+For an equivalent isolated run, set `BUSYMATE_HOSTED_COMMIT` and
+`BUSYMATE_HOSTED_BUILD`, then run `bash scripts/test-permissions.sh`
+from the repository root. Use the CI runtime specified above with English OS
+permission labels. Existing `.permission-results/` evidence is preserved; move it
+before a subsequent run.
+
+Four cases each start with this disposable demo's microphone permission reset:
+dictation grant, dictation deny, voice-mode grant and voice-mode deny. Each case
+requires the actual hosted controls to be visible and no opening permission
+dialog, taps that real control, captures the OS dialog naming this demo, and
+chooses Allow or Deny through the system UI. Permission is never pre-granted by
+adb, simctl, browser scripting or a mocked bridge. Screenshots and test reports
+are retained under `.permission-results/`.
+Android additionally verifies the app's actual RECORD_AUDIO permission and retains dumpsys readback after each choice.
+
+The app/WebView is closed promptly after the choice, including on assertion
+failure. Grant cases can briefly begin a real virtual capture or voice session;
+no chat message or deliberate transcription is sent. These tests prove the
+simulator/emulator OS-permission boundary, not physical microphone/audio quality,
+all tenant features or authenticated backend behavior. Do not run against an old
+hosted build or on a shared physical device. No published SDK tag is changed by
+this harness.
