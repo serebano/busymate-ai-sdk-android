@@ -54,7 +54,11 @@ adb shell settings put global window_animation_scale 0
 adb shell settings put global transition_animation_scale 0
 adb shell settings put global animator_duration_scale 0
 TEST_STATUS=0
-./gradlew :example-app:connectedDebugAndroidTest --no-daemon || TEST_STATUS=$?
+# AGP normally uninstalls both test APKs and removes their external files before
+# returning. Keep them only on this disposable emulator until evidence is pulled;
+# the cleanup trap then removes the complete task-owned AVD.
+./gradlew :example-app:connectedDebugAndroidTest \
+  -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true --no-daemon || TEST_STATUS=$?
 # Retain the real rendered hierarchy and screenshots even when an assertion
 # fails; reporting must never replace the instrumentation exit status.
 adb pull /sdcard/Android/data/ai.busymate.sample/files/runtime "$RESULTS/screenshots" || {
