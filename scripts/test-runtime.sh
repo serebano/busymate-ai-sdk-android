@@ -15,12 +15,17 @@ export ANDROID_SERIAL=emulator-5580
 if adb devices | awk '{print $1}' | grep -qx "$ANDROID_SERIAL"; then
   echo 'Reserved test emulator port5580 is already in use.' >&2; exit 1
 fi
+# avdmanager and current emulator releases can otherwise resolve different
+# default config directories. Give both tools the same task-owned location.
+export ANDROID_AVD_HOME="${RUNNER_TEMP:-/tmp}/busymate-sdk-avd-$$"
+mkdir "$ANDROID_AVD_HOME"
 AVD_NAME="busymate-sdk-runtime-$$"
 printf 'no\n' | avdmanager create avd --name "$AVD_NAME" --package 'system-images;android-35;google_apis;x86_64' --device pixel_7
 EMULATOR_PID=''
 cleanup() {
   if [[ -n "$EMULATOR_PID" ]]; then kill "$EMULATOR_PID" 2>/dev/null || true; wait "$EMULATOR_PID" 2>/dev/null || true; fi
   avdmanager delete avd --name "$AVD_NAME"
+  rmdir "$ANDROID_AVD_HOME"
 }
 trap cleanup EXIT
 "$SDK_ROOT/emulator/emulator" -avd "$AVD_NAME" -port 5580 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RESULTS/emulator.log" 2>&1 &
