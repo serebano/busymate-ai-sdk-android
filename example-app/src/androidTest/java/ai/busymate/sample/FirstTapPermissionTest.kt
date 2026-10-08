@@ -3,7 +3,6 @@ package ai.busymate.sample
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -22,7 +21,6 @@ import org.junit.runner.RunWith
 
 /** Four separate invocations, each with fresh owned-demo data/permissions. */
 @RunWith(AndroidJUnit4::class)
-@RequiresApi(34)
 class FirstTapPermissionTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context = instrumentation.targetContext
@@ -35,7 +33,11 @@ class FirstTapPermissionTest {
                 // WebView hydration can replace the composer after its first
                 // accessibility snapshot. Query fresh nodes on every poll;
                 // never infer a tap target from screenshot coordinates.
-                assertTrue("Accessibility cache must refresh", instrumentation.uiAutomation.clearCache())
+                if (Build.VERSION.SDK_INT >= 34) {
+                    assertTrue("Accessibility cache must refresh", instrumentation.uiAutomation.clearCache())
+                } else {
+                    error("Permission harness requires API34+")
+                }
                 return device.findObject(By.text(label).pkg(context.packageName))
             }
         }, timeout)
