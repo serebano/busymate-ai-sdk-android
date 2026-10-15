@@ -22,6 +22,7 @@ The [combined Activity example](example-app/src/main/java/ai/busymate/sample/Cha
 2. Configure the [complete SDK reference](docs/configuration.md).
 3. Follow [microphone and voice integration](docs/microphone.md).
 4. Validate on physical devices using the acceptance checklist.
+5. Make the WebView shrink for the on-screen keyboard — `adjustResize` plus the `ime()` inset on an edge-to-edge window ([keyboard and window insets](docs/configuration.md#keyboard-and-window-insets)); a full-height WebView hides the composer under the keyboard.
 
 Install both bridges in `ComponentActivity.onCreate` before `STARTED` and before `loadUrl`. Forward `WebChromeClient.onPermissionRequest` to the microphone adapter. User tapping chat microphone/voice triggers OS permission (through the chat event, or through the chat's WebView audio request when the app has not been granted yet); opening chat does not. Denied/revoked/cancelled permission flows are explained in the guide. Supported `WEB_MESSAGE_LISTENER` is required for microphone events; no insecure fallback is provided.
 
