@@ -11,4 +11,5 @@ dependencies {
     api("androidx.webkit:webkit:1.12.1")
     implementation("androidx.core:core:1.15.0")
     implementation("androidx.lifecycle:lifecycle-process:2.8.7")
+    testImplementation("junit:junit:4.13.2")
 }
