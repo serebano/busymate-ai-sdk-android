@@ -15,6 +15,9 @@ import android.widget.*
 import ai.busymate.bridge.BusymateBridge
 import ai.busymate.whitelabel.BusymateMicrophone
 import androidx.activity.ComponentActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 
@@ -68,6 +71,20 @@ class ChatActivity : ComponentActivity() {
         column.addView(ScrollView(this).apply { addView(settings) }, LinearLayout.LayoutParams(-1, 420))
         webView = WebView(this)
         column.addView(webView, LinearLayout.LayoutParams(-1, 0, 1f)); setContentView(column)
+        // The chat composer docks on the on-screen keyboard only if THIS view
+        // shrinks when the keyboard opens (hosted chat lays out against its
+        // viewport; it cannot see the keyboard otherwise). An edge-to-edge
+        // window (Android 15+ for targetSdk 35, or any `enableEdgeToEdge()` /
+        // `setDecorFitsSystemWindows(false)` host) no longer resizes for the
+        // IME by itself, so the host applies the IME inset. See
+        // docs/configuration.md → "Keyboard and window insets".
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        ViewCompat.setOnApplyWindowInsetsListener(column) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
+            view.setPadding(bars.left, bars.top, bars.right, maxOf(bars.bottom, ime.bottom))
+            WindowInsetsCompat.CONSUMED
+        }
         BusymateBridge.install(webView, current.identityConfig(
             mint = { request, done -> log("Backend mint requested (sensitive fields omitted)."); BackendMint.mint(current, request, done) },
             log = { log(it) }, close = { finish() },
