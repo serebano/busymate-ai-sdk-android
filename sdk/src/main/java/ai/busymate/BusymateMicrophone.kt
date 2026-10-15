@@ -61,11 +61,32 @@ class BusymateMicrophone(
     }
     /** Grant only audio, only the configured requesting origin, only after OS grant.
      * Call this on the UI thread from WebChromeClient.onPermissionRequest.
+     * When the app has not been granted RECORD_AUDIO yet, an allowed audio request
+     * asks the OS first (the chat's own getUserMedia/speech capture after a user tap)
+     * and settles the WebView request with the user's answer.
      */
     fun allowMedia(request: PermissionRequest) {
-        if (normalized(request.origin) in allowed && granted() &&
-            PermissionRequest.RESOURCE_AUDIO_CAPTURE in request.resources) {
-            request.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
-        } else request.deny()
+        when (decide(normalized(request.origin) in allowed,
+            PermissionRequest.RESOURCE_AUDIO_CAPTURE in request.resources, granted())) {
+            Decision.GRANT -> settle(request, true)
+            Decision.DENY -> settle(request, false)
+            Decision.ASK -> ask { ok -> settle(request, ok && granted()) }
+        }
+    }
+    private fun settle(request: PermissionRequest, grant: Boolean) {
+        // A request the WebView already cancelled may reject a late answer.
+        runCatching {
+            if (grant) request.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE)) else request.deny()
+        }
+    }
+    internal enum class Decision { GRANT, ASK, DENY }
+    internal companion object {
+        /** Pure WebView media decision: untrusted origin or no audio is denied;
+         * an OS grant grants audio only; otherwise the OS is asked first. */
+        fun decide(originAllowed: Boolean, audioRequested: Boolean, osGranted: Boolean): Decision = when {
+            !originAllowed || !audioRequested -> Decision.DENY
+            osGranted -> Decision.GRANT
+            else -> Decision.ASK
+        }
     }
 }

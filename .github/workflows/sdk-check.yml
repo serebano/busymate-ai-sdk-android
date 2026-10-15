@@ -41,10 +41,10 @@ jobs:
       - name: Verify immutable source
         run: python3 scripts/verify-release.py
       - name: Build SDK and consumer APK
-        run: ./gradlew :sdk:assembleRelease :example-app:assembleDebug :example-app:testDebugUnitTest :sdk:lintRelease :example-app:lintDebug --no-daemon
+        run: ./gradlew :sdk:assembleRelease :sdk:testDebugUnitTest :example-app:assembleDebug :example-app:testDebugUnitTest :sdk:lintRelease :example-app:lintDebug --no-daemon
       - uses: actions/upload-artifact@v4
         with:
-          name: busymate-ai-sdk-android-1.0.0
+          name: busymate-ai-sdk-android-1.0.1
           path: sdk/build/outputs/aar/sdk-release.aar
       - name: Prepare hosted runner emulator
         run: |

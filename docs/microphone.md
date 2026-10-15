@@ -1,4 +1,4 @@
-# Native microphone integration for iOS and Android — adapter 1.0.0
+# Native microphone integration for iOS and Android — adapter 1.0.0 (iOS) / 1.0.1 (Android)
 
 This guide adds microphone permission requests to a hosted chat in your native app.
 A user taps the chat microphone or voice button; the chat sends an event to the
@@ -12,7 +12,7 @@ immediately; a previous refusal can require the user to change app Settings.
 - Keep your existing identity bridge and authentication flow. This optional
   adapter works with either identity bridge; the immutable kit v2 files stay unchanged.
 - Download [the Swift adapter](https://busymate.ai/sdk/microphone/1.0.0/ios/BusymateMicrophone.swift)
-  or [the Kotlin adapter](https://busymate.ai/sdk/microphone/1.0.0/android/BusymateMicrophone.kt)
+  or [the Kotlin adapter 1.0.1](https://github.com/serebano/busymate-ai-sdk-android/blob/1.0.1/sdk/src/main/java/ai/busymate/BusymateMicrophone.kt)
   and include it in your app target. The source files contain the bridge implementation.
 - Use the chat URL generated for your tenant. The examples use
   `https://YOUR_ASSISTANT.busymate.ai`; replace it with your actual chat origin
@@ -176,7 +176,11 @@ Keep your existing `WebChromeClient` and forward `onPermissionRequest` on the UI
 thread. The adapter grants only `RESOURCE_AUDIO_CAPTURE`, only for an allowed
 requesting origin, and only after the app's OS permission is granted; other
 resources are not granted. The runtime permission dialog is launched only when
-needed. For a chat iframe, its parent page must also allow microphone access
+needed. Since adapter 1.0.1, an audio request from an allowed origin that arrives
+before the app holds `RECORD_AUDIO` (for example the chat's built-in speech
+dictation, which captures without sending the event first) asks the OS, then grants
+or denies that WebView request with the user's answer; adapter 1.0.0 denied it
+without a prompt. For a chat iframe, its parent page must also allow microphone access
 through its iframe Permissions Policy.
 
 ## Event and reply contract
@@ -217,7 +221,7 @@ unmount. Cancelling chat does not dismiss an OS-owned prompt or undo an OS grant
 
 | Symptom | Check |
 |---|---|
-| No OS prompt on first tap | Permission may already be decided. On a fresh permission state, confirm the adapter was installed before load, the exact chat/frame origin is allowed, and Android exposes `WEB_MESSAGE_LISTENER`. |
+| No OS prompt on first tap | Use Android adapter 1.0.1 or later (1.0.0 silently denied a WebView audio request made before the OS grant). Permission may already be decided. On a fresh permission state, confirm the adapter was installed before load, the exact chat/frame origin is allowed, and Android exposes `WEB_MESSAGE_LISTENER`. |
 | OS accepted, chat still cannot record | Verify `WKUIDelegate` / `WebChromeClient` forwarding and the requesting origin. Check iframe Permissions Policy and the WebView's media capability. OS permission alone is insufficient. |
 | Retry shows no new prompt | Open this app's microphone setting and grant access, then return and tap **Try again**. The OS controls repeat prompts. |
 | Android launcher registration error | Create the adapter in `ComponentActivity.onCreate`, before `STARTED`, once for that WebView. |
