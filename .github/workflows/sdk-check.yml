@@ -44,8 +44,12 @@ jobs:
         run: ./gradlew :sdk:assembleRelease :sdk:testDebugUnitTest :example-app:assembleDebug :example-app:testDebugUnitTest :sdk:lintRelease :example-app:lintDebug --no-daemon
       - uses: actions/upload-artifact@v4
         with:
-          name: busymate-ai-sdk-android-1.0.1
+          name: busymate-ai-sdk-android-1.0.2
           path: sdk/build/outputs/aar/sdk-release.aar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: busymate-sdk-example-android-1.0.2-debug
+          path: example-app/build/outputs/apk/debug/example-app-debug.apk
       - name: Prepare hosted runner emulator
         run: |
           sdkmanager 'emulator' 'system-images;android-35;google_apis;x86_64'
