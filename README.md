@@ -40,7 +40,7 @@ This repository and its releases are the only source of the adapter. busymate.ai
 
 Install Gradle 8.9, JDK 17 and Android SDK 35, then run `python3 scripts/verify-release.py` and `./gradlew :sdk:assembleRelease :sdk:testDebugUnitTest :example-app:assembleDebug :example-app:testDebugUnitTest :sdk:lintRelease :example-app:lintDebug`. CI runs that real library/consumer build and publishes its AAR as a build artifact. Physical permission dialogs, tenant backend identity and app-store rollout need separate device validation.
 
-Distribution 1.0.2 differs from identity wire 2/build 2.0.0 and microphone wire 1/adapter 1.0.1. [Release manifest](release-manifest.json) pins the source hashes; identity bytes are unchanged since 1.0.0. This repo owns Android SDK releases; [busymate.ai official documentation](https://busymate.ai/docs/guides/mobile-in-app-support) and artifact mirrors pin these sources. See [changelog](CHANGELOG.md) and [v2 wire contract](CONTRACT-v2.md).
+Distribution 1.0.2 differs from identity wire 2/build 2.0.0 and microphone wire 1/adapter 1.0.1. [Release manifest](release-manifest.json) pins the source hashes; identity bytes are unchanged since 1.0.0. This repo owns Android SDK releases; [busymate.ai official documentation](https://busymate.ai/docs/guides/mobile-in-app-support?utm_source=github&utm_medium=readme&utm_campaign=busymate-ai-sdk-android) and artifact mirrors pin these sources. See [changelog](CHANGELOG.md) and [v2 wire contract](CONTRACT-v2.md).
 
 ## Release process
 
