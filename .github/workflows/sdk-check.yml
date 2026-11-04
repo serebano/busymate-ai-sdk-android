@@ -16,11 +16,19 @@ on:
         type: string
 permissions:
   contents: read
+# Our runners only, never GitHub-hosted (owner order 2026-11-04). build = ephemeral k3s scale set ci-sdk-android
+# (class sdk, Ubuntu 24.04, no KVM). The emulator needs hardware virtualisation, which the k3s pods do not have, so
+# the emulator jobs run on the Mac runner bm-mac-busymate-ai-sdk-android (Apple Silicon: arm64-v8a image,
+# Hypervisor.framework). They use their own adb server port: the Mac's default adb server (5037) belongs to the
+# owner's phone farm and the runner sandbox blocks it.
 jobs:
-  sdk-check:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ci-sdk-android
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+      - name: No GitHub-hosted runners (runs-on lint)
+        run: python3 .github/runs-on-lint.py
       - name: Require the declared native-chat live revision before permission acceptance
         if: github.event_name == 'workflow_dispatch' && (inputs.hosted_commit != '' || inputs.hosted_build != '')
         env:
@@ -50,11 +58,35 @@ jobs:
         with:
           name: busymate-sdk-example-android-1.0.2-debug
           path: example-app/build/outputs/apk/debug/example-app-debug.apk
-      - name: Prepare hosted runner emulator
+
+  emulator:
+    needs: build
+    runs-on: [self-hosted, macOS, bm-mac]
+    # The job timeout includes the wait for the shared Mac's one-job lock (job-started hook), which can be long;
+    # the emulator step itself is capped separately so a hang never holds the Mac.
+    timeout-minutes: 150
+    env:
+      ANDROID_ADB_SERVER_PORT: '5590'
+    steps:
+      - uses: actions/checkout@v4
+      # Java resolves user.home from the account, not $HOME, and the runner sandbox denies the owner's home:
+      # point Java, Gradle and the Android tools at this runner's own home.
+      - name: Keep Java, Gradle and Android state in the runner's home
         run: |
-          sdkmanager 'emulator' 'system-images;android-35;google_apis;x86_64'
-          sudo chmod a+rw /dev/kvm
+          { echo "JAVA_TOOL_OPTIONS=-Duser.home=$HOME"; echo "GRADLE_USER_HOME=$HOME/.gradle"; echo "ANDROID_USER_HOME=$HOME/.android"; } >> "$GITHUB_ENV"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-35 build-tools;34.0.0 emulator system-images;android-35;google_apis;arm64-v8a
+          log-accepted-android-sdk-licenses: false
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
       - name: Run actual demo on an isolated Android emulator
+        timeout-minutes: 30
         if: github.event_name != 'workflow_dispatch' || (inputs.hosted_commit == '' && inputs.hosted_build == '')
         run: bash scripts/test-runtime.sh
       - uses: actions/upload-artifact@v4
@@ -66,8 +98,9 @@ jobs:
             example-app/build/outputs/androidTest-results/
             example-app/build/reports/androidTests/
             .runtime-results/
-          retention-days: 7
+          retention-days: 3
       - name: Verify first-tap OS permission against the confirmed live build
+        timeout-minutes: 45
         if: github.event_name == 'workflow_dispatch' && (inputs.hosted_commit != '' || inputs.hosted_build != '')
         env:
           BUSYMATE_HOSTED_COMMIT: ${{ inputs.hosted_commit }}
@@ -79,4 +112,18 @@ jobs:
           name: android-first-tap-permission-results
           include-hidden-files: true
           path: .permission-results/
-          retention-days: 7
+          retention-days: 3
+      - name: Stop this job's adb server
+        if: always()
+        run: adb kill-server || true
+
+  sdk-check:
+    if: ${{ always() && !cancelled() }}  # a cancelled run must not turn the gate red
+    needs: [build, emulator]
+    runs-on: ci-sdk-android
+    timeout-minutes: 45
+    steps:
+      - name: Build and emulator passed
+        run: |
+          test "${{ needs.build.result }}" = success
+          test "${{ needs.emulator.result }}" = success
