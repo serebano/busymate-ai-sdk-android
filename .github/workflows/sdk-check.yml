@@ -24,6 +24,7 @@ permissions:
 jobs:
   build:
     runs-on: ci-sdk-android
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - name: No GitHub-hosted runners (runs-on lint)
@@ -112,9 +113,10 @@ jobs:
         run: adb kill-server || true
 
   sdk-check:
-    if: always()
+    if: ${{ always() && !cancelled() }}  # a cancelled run must not turn the gate red
     needs: [build, emulator]
     runs-on: ci-sdk-android
+    timeout-minutes: 45
     steps:
       - name: Build and emulator passed
         run: |
