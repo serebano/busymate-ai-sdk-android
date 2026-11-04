@@ -61,7 +61,9 @@ jobs:
   emulator:
     needs: build
     runs-on: [self-hosted, macOS, bm-mac]
-    timeout-minutes: 45
+    # The job timeout includes the wait for the shared Mac's one-job lock (job-started hook), which can be long;
+    # the emulator step itself is capped separately so a hang never holds the Mac.
+    timeout-minutes: 150
     env:
       ANDROID_ADB_SERVER_PORT: '5590'
     steps:
@@ -78,6 +80,7 @@ jobs:
         with:
           gradle-version: '8.9'
       - name: Run actual demo on an isolated Android emulator
+        timeout-minutes: 30
         if: github.event_name != 'workflow_dispatch' || (inputs.hosted_commit == '' && inputs.hosted_build == '')
         run: bash scripts/test-runtime.sh
       - uses: actions/upload-artifact@v4
@@ -91,6 +94,7 @@ jobs:
             .runtime-results/
           retention-days: 3
       - name: Verify first-tap OS permission against the confirmed live build
+        timeout-minutes: 45
         if: github.event_name == 'workflow_dispatch' && (inputs.hosted_commit != '' || inputs.hosted_build != '')
         env:
           BUSYMATE_HOSTED_COMMIT: ${{ inputs.hosted_commit }}
