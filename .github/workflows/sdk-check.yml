@@ -69,6 +69,11 @@ jobs:
       ANDROID_ADB_SERVER_PORT: '5590'
     steps:
       - uses: actions/checkout@v4
+      # Java resolves user.home from the account, not $HOME, and the runner sandbox denies the owner's home:
+      # point Java, Gradle and the Android tools at this runner's own home.
+      - name: Keep Java, Gradle and Android state in the runner's home
+        run: |
+          { echo "JAVA_TOOL_OPTIONS=-Duser.home=$HOME"; echo "GRADLE_USER_HOME=$HOME/.gradle"; echo "ANDROID_USER_HOME=$HOME/.android"; } >> "$GITHUB_ENV"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
