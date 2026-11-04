@@ -11,12 +11,17 @@ case "$MODE" in
     python3 scripts/assert-hosted-release.py "$RESULTS/hosted-before.json" ;;
   *) echo 'Unknown runtime mode.' >&2; exit 1 ;;
 esac
-# The hosted Linux SDK-check runner provides KVM. Never install images locally
-# merely to run this script; provide them first or use this repository's CI.
-[[ -x "$SDK_ROOT/emulator/emulator" && -d "$SDK_ROOT/system-images/android-35/google_apis/x86_64" ]] || {
-  echo 'Install emulator and Android35 Google APIs x86_64 system image first, or use CI.' >&2; exit 1;
+# CI runs this on the Mac runner (Apple Silicon, Hypervisor.framework, arm64-v8a image); a Linux x86_64 host needs
+# KVM and the x86_64 image. Never install images locally merely to run this script; provide them first or use CI.
+case "$(uname -s)/$(uname -m)" in
+  Darwin/arm64) ABI=arm64-v8a ;;
+  Linux/x86_64) ABI=x86_64; [[ -w /dev/kvm ]] || { echo 'A writable KVM device is required.' >&2; exit 1; } ;;
+  *) echo "Unsupported emulator host $(uname -s)/$(uname -m)." >&2; exit 1 ;;
+esac
+IMAGE="system-images;android-35;google_apis;$ABI"
+[[ -x "$SDK_ROOT/emulator/emulator" && -d "$SDK_ROOT/system-images/android-35/google_apis/$ABI" ]] || {
+  echo "Install emulator and Android35 Google APIs $ABI system image first, or use CI." >&2; exit 1;
 }
-[[ -w /dev/kvm ]] || { echo 'A writable KVM device is required.' >&2; exit 1; }
 # Every adb operation addresses this test's emulator, never a connected phone.
 export ANDROID_SERIAL=emulator-5580
 if adb devices | awk '{print $1}' | grep -qx "$ANDROID_SERIAL"; then
@@ -27,7 +32,7 @@ fi
 export ANDROID_AVD_HOME="${RUNNER_TEMP:-/tmp}/busymate-sdk-avd-$$"
 mkdir "$ANDROID_AVD_HOME"
 AVD_NAME="busymate-sdk-runtime-$$"
-printf 'no\n' | avdmanager create avd --name "$AVD_NAME" --package 'system-images;android-35;google_apis;x86_64' --device pixel_7
+printf 'no\n' | avdmanager create avd --name "$AVD_NAME" --package "$IMAGE" --device pixel_7
 EMULATOR_PID=''
 cleanup() {
   if [[ -n "$EMULATOR_PID" ]]; then kill "$EMULATOR_PID" 2>/dev/null || true; wait "$EMULATOR_PID" 2>/dev/null || true; fi
