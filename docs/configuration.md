@@ -27,6 +27,21 @@ For Fragment/Compose hosts, register the microphone Activity Result launcher bef
 
 V1 Android methods: `refreshIdentity`, `identityChanged`, `signedOut(reason)` and `onResume`; its provider returns a callback `Result<BusymateAIIdentity?>`. Handler names are `BusymateAINative` and compatibility `SupportChatNative`. JavaScript interfaces must be removed when their host is disposed.
 
+## Attachments (the + button)
+
+Visitors can attach images and PDFs in every Busymate chat. The chat uses a standard `<input type="file">`; an Android WebView shows **nothing** for it unless the WebView's `WebChromeClient` answers `onShowFileChooser` (busymate-ai-src#6026 follow-up, 2026-11-19: hosts on SDK 1.0.2 and older saw a + button that did nothing). From SDK 1.0.3 the SDK answers it for you:
+
+| Host | What to do |
+|---|---|
+| Uses `BusymateMicrophone` (constructed in `onCreate`) | Nothing: the microphone adapter installs `BusymateFiles` on the same WebView. |
+| No microphone adapter | `BusymateFiles.install(this, webView)` in `onCreate`, before `STARTED` and `loadUrl` (pass your exact support origins as the third argument if the chat runs on your own domain). |
+| Sets a new `WebChromeClient` after the Activity started, or replaces the WebView (`onReplaced`) | Forward from your client: `override fun onShowFileChooser(view: WebView, callback: ValueCallback<Array<Uri>>, params: FileChooserParams) = BusymateFiles.install(activity, view).show(callback, params)` (`install` returns the instance already registered for that WebView). |
+| Your client already overrides `onShowFileChooser` | Nothing changes: `BusymateFiles` keeps yours. |
+
+How it works: at `ON_START` `BusymateFiles` wraps the `WebChromeClient` you set during `onCreate` (every other callback is forwarded to yours unchanged) and answers the file chooser with the system document picker (`ACTION_OPEN_DOCUMENT`, filtered to the chat's accepted types: images and PDFs). The page gets read access only to the files the user picks; your app needs no storage or camera permission and no `FileProvider`. Cancelling the picker leaves the composer unchanged.
+
+The chat sees an inert `window.BusymateFiles` object (a message listener that accepts nothing, exposed only to `busymate.ai`, `*.busymate.ai` and your listed https origins). In an Android WebView that runs this SDK but has no `BusymateFiles`, the chat hides the + button instead of showing a dead one, so update to 1.0.3 to get attachments back.
+
 ## Keyboard and window insets
 
 The hosted chat docks its message composer on the on-screen keyboard by laying out against the WebView's own viewport (`interactive-widget=resizes-content` on the page's viewport meta, `dvh` heights). It never measures the keyboard itself: inside a WebView, `visualViewport` and `innerHeight` only change when the **view** changes size. So the composer is above the keyboard exactly when your host shrinks the WebView by the keyboard's height, and hidden under it when the keyboard paints over a full-height WebView (busymate-ai-src#2097, the "Chat with support" screen with the keyboard open and no input in sight).

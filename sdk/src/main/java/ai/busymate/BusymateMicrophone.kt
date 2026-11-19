@@ -12,9 +12,10 @@ import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import org.json.JSONObject
 
-/** Optional add-on: construct during Activity.onCreate, before STARTED/loadUrl.
+/** Optional add-on (microphone adapter 1.0.2): construct during Activity.onCreate, before STARTED/loadUrl.
  * Keep it alive and route WebChromeClient.onPermissionRequest to allowMedia.
  * No JavascriptInterface fallback: only a verified sending frame may ask.
+ * Also installs [BusymateFiles] on the same WebView, so the chat's attach (+) button works.
  */
 class BusymateMicrophone(
     private val activity: ComponentActivity,
@@ -33,6 +34,7 @@ class BusymateMicrophone(
         callbacks.forEach { it(granted) }
     }
     init {
+        BusymateFiles.install(activity, webView, allowed)
         if (allowed.isNotEmpty() && WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
             WebViewCompat.addWebMessageListener(webView, "BusymateMicrophone", allowed) { _, message, sourceOrigin, _, reply ->
                 val raw = message.data ?: ""
