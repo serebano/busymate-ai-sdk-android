@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3
+
+Attachments: the hosted chat's attach (+) button now opens the system document picker. Android WebView ignores `<input type="file">` unless the host's `WebChromeClient` answers `onShowFileChooser`, which no SDK piece did, so on 1.0.2 and older the + button did nothing (reported 2026-11-19 after visitor attachments went live in every workspace chat). New `BusymateFiles.kt` (files adapter 1.0.0): registers `OpenDocument`/`OpenMultipleDocuments` launchers, wraps the host `WebChromeClient` at `ON_START` (forwarding every other callback; a host that already overrides `onShowFileChooser` keeps its own) and exposes an inert `window.BusymateFiles` capability object to busymate.ai and the listed origins. No new permission. Microphone adapter 1.0.2 (wire 1 unchanged) installs it, so hosts using the microphone adapter only update the SDK. Identity v1/v2 bytes unchanged. Example app installs it explicitly. Verified on a farm Pixel 4a (Android 13): + opens the picker, an image and a PDF attach and the mate reads both.
+
 ## 1.0.2
 
 Release packaging: the microphone adapter source (`BusymateMicrophone.kt`, adapter 1.0.1, wire 1, sha256 `7b49ef8232dd8b834b54927b58d5f980fce3c17914380523fde1124696a49632`) is attached to every GitHub release and listed in `SHA256SUMS`; docs link the release, not busymate.ai. No SDK code change (refs serebano/busymate-ai-src#2156). CI also uploads the example debug APK as a build artifact.

@@ -13,6 +13,7 @@ import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.widget.*
 import ai.busymate.bridge.BusymateBridge
+import ai.busymate.whitelabel.BusymateFiles
 import ai.busymate.whitelabel.BusymateMicrophone
 import androidx.activity.ComponentActivity
 import androidx.core.view.ViewCompat
@@ -90,6 +91,11 @@ class ChatActivity : ComponentActivity() {
             log = { log(it) }, close = { finish() },
             replaced = { replacement -> webView = replacement; log("Identity SDK replaced renderer WebView.") },
         ))
+        // The chat's attach (+) button: Android WebView shows no picker unless the
+        // WebChromeClient answers onShowFileChooser. BusymateMicrophone installs this
+        // too; calling it here keeps + working with the microphone adapter off.
+        // It wraps the WebChromeClient set below at ON_START (docs/configuration.md → "Attachments").
+        BusymateFiles.install(this, webView)
         if (current.microphoneEnabled) microphone = BusymateMicrophone(this, webView, BusymateBridge.allowedOrigins(
             BusymateBridge.Config(current.assistant, current.origins(), { null }, { _, done -> done(BusymateBridge.MintResult.NotSignedIn) })).toSet())
         webView.webChromeClient = object : WebChromeClient() {
@@ -113,6 +119,7 @@ class ChatActivity : ComponentActivity() {
         if (::webView.isInitialized) {
             if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
                 WebViewCompat.removeWebMessageListener(webView, "BusymateMicrophone")
+                WebViewCompat.removeWebMessageListener(webView, BusymateFiles.NAME)
                 WebViewCompat.removeWebMessageListener(webView, BusymateBridge.NAME)
             }
             webView.removeJavascriptInterface(BusymateBridge.NAME)
