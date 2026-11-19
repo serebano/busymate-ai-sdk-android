@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4
+
+Chat address: the hosted chat's frame address is now `https://busymate.ai/chat/w/<assistant>` (busymate-ai-src#6079: no `/support` URLs). The example app defaults to `https://busymate.ai/chat/w/demos?channel=android&locale=en` and the docs name the new address. `/support/<assistant>` keeps working forever as a silent alias, so apps built on 1.0.3 and older need no change. No SDK source bytes changed (identity v1/v2, microphone adapter 1.0.2 and files adapter 1.0.0 are identical to 1.0.3).
+
 ## 1.0.3
 
 Attachments: the hosted chat's attach (+) button now opens the system document picker. Android WebView ignores `<input type="file">` unless the host's `WebChromeClient` answers `onShowFileChooser`, which no SDK piece did, so on 1.0.2 and older the + button did nothing (reported 2026-11-19 after visitor attachments went live in every workspace chat). New `BusymateFiles.kt` (files adapter 1.0.0): registers `OpenDocument`/`OpenMultipleDocuments` launchers, wraps the host `WebChromeClient` at `ON_START` (forwarding every other callback; a host that already overrides `onShowFileChooser` keeps its own) and exposes an inert `window.BusymateFiles` capability object to busymate.ai and the listed origins. No new permission. Microphone adapter 1.0.2 (wire 1 unchanged) installs it, so hosts using the microphone adapter only update the SDK. Identity v1/v2 bytes unchanged. Example app installs it explicitly. Verified on a farm Pixel 4a (Android 13): + opens the picker, an image and a PDF attach and the mate reads both.
