@@ -2,7 +2,7 @@
 
 This buildable Gradle app consumes `project(":sdk")`, the actual SDK from this repository. Build `./gradlew :example-app:assembleDebug :example-app:testDebugUnitTest`, install `example-app/build/outputs/apk/debug/example-app-debug.apk` on a supported Android device, and launch **Busymate SDK example**.
 
-The default route `https://busymate.ai/support/demos?channel=android&locale=en` is real hosted guest chat. The assistant root marketing website is not used as a chat route. Your own tenant's actual chat URL and assistant slug can be configured in Settings. The top settings panel scrolls; hosted chat fills the remaining screen.
+The default route `https://busymate.ai/chat/w/demos?channel=android&locale=en` is real hosted guest chat. The assistant root marketing website is not used as a chat route. Your own tenant's actual chat URL and assistant slug can be configured in Settings. The top settings panel scrolls; hosted chat fills the remaining screen.
 
 Controls: assistant, HTTPS chat URL, exact origins, optional authenticated-backend URL/account/session bearer; enable microphone adapter, ready/close handlers; Apply safely recreates the Activity/WebView; sign in/out and account state refresh; reload; OS app Settings; reset to guest defaults. The bearer is your own backend session credential, never a Busymate service key. Values live only in process memory and are never persisted/logged. Configure and Apply before using Sign in. Setting an account ID does not authenticate you: your real backend must authenticate the supplied session, mint a fresh nonce-bound assertion and return `{token, nonce}`. The demo makes a real HTTPS POST with the SDK mint fields; it does not fake successful identity.
 

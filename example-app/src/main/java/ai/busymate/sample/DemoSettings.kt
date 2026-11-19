@@ -6,7 +6,7 @@ import ai.busymate.bridge.BusymateBridge
 
 data class DemoSettings(
     val assistant: String = "demos",
-    val chatUrl: String = "https://busymate.ai/support/demos?channel=android&locale=en",
+    val chatUrl: String = "https://busymate.ai/chat/w/demos?channel=android&locale=en",
     val extraOrigins: String = "https://busymate.ai",
     val microphoneEnabled: Boolean = true,
     val closeEnabled: Boolean = true,
