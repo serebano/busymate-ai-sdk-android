@@ -14,6 +14,7 @@ import android.webkit.WebView
 import android.widget.*
 import ai.busymate.bridge.BusymateBridge
 import ai.busymate.whitelabel.BusymateFiles
+import ai.busymate.whitelabel.BusymateLaunch
 import ai.busymate.whitelabel.BusymateMicrophone
 import androidx.activity.ComponentActivity
 import androidx.core.view.ViewCompat
@@ -111,7 +112,7 @@ class ChatActivity : ComponentActivity() {
                 return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) BusymateBridge.onRenderProcessGone(view, detail) else false
             }
         }
-        webView.loadUrl(current.chatUrl)
+        webView.loadUrl(BusymateLaunch.chatUrl(current.chatUrl, this))
     }
     private fun log(message: String) { runOnUiThread { events.append(message + "\n"); if (events.text.length > 6000) events.text = events.text.takeLast(4000) } }
     override fun onResume() { super.onResume(); if (::events.isInitialized) log("Activity resumed; SDK observes foreground state.") }

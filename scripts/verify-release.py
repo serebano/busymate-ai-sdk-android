@@ -6,7 +6,11 @@ for name,expected in m['files'].items():
     actual=hashlib.sha256((root/name).read_bytes()).hexdigest()
     assert actual==expected, f"Frozen source changed: {name}"
     print(f"verified {name} {actual}")
-assert m['version']=='1.0.4'
+# The SDK's own version constant (BusymateLaunch.SDK_VERSION) must equal the manifest: one source, no drift.
+import re
+launch=(root/'sdk/src/main/java/ai/busymate/BusymateLaunch.kt').read_text()
+const=re.search(r'const val SDK_VERSION = "([^"]+)"',launch)
+assert const and const.group(1)==m['version'], 'BusymateLaunch.SDK_VERSION must equal release-manifest.json version'
 
 # Every release attaches each adapter source under its basename (plus SHA256SUMS).
 assets=m.get('adapterAssets') or []
