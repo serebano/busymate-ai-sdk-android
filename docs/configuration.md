@@ -27,6 +27,10 @@ For Fragment/Compose hosts, register the microphone Activity Result launcher bef
 
 V1 Android methods: `refreshIdentity`, `identityChanged`, `signedOut(reason)` and `onResume`; its provider returns a callback `Result<BusymateAIIdentity?>`. Handler names are `BusymateAINative` and compatibility `SupportChatNative`. JavaScript interfaces must be removed when their host is disposed.
 
+## Launch parameters
+
+`BusymateLaunch.chatUrl(chatUrl, context)` returns the chat address with two extra query items: `sdkVersion` (this SDK's release, e.g. `1.0.5`) and `hostAppId` (your `applicationId`; left out unless it matches `^[A-Za-z][A-Za-z0-9._-]{1,127}$`). The hosted page reads them once from its own URL to label the chat's analytics events by SDK release and host app. No request, permission or stored identifier is added; your own query items (`channel=android`) are kept. A string overload `chatUrl(chatUrl, hostAppId)` exists for tests.
+
 ## Attachments (the + button)
 
 Visitors can attach images and PDFs in every Busymate chat. The chat uses a standard `<input type="file">`; an Android WebView shows **nothing** for it unless the WebView's `WebChromeClient` answers `onShowFileChooser` (busymate-ai-src#6026 follow-up, 2026-11-19: hosts on SDK 1.0.2 and older saw a + button that did nothing). From SDK 1.0.3 the SDK answers it for you:
