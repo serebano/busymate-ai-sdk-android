@@ -1,11 +1,11 @@
-plugins { id("com.android.library"); id("org.jetbrains.kotlin.android") }
+plugins { id("com.android.library") }
 android {
     namespace = "ai.busymate.sdk"
     compileSdk = 35
     defaultConfig { minSdk = 23; consumerProguardFiles("consumer-rules.pro") }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
-    kotlinOptions { jvmTarget = "17" }
 }
+kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 dependencies {
     api("androidx.activity:activity:1.9.3")
     api("androidx.webkit:webkit:1.12.1")

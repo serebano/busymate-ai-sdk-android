@@ -26,7 +26,7 @@ jobs:
     runs-on: ci-sdk-android
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: No GitHub-hosted runners (runs-on lint)
         run: python3 .github/runs-on-lint.py
       - name: Require the declared native-chat live revision before permission acceptance
@@ -35,32 +35,35 @@ jobs:
           BUSYMATE_HOSTED_COMMIT: ${{ inputs.hosted_commit }}
           BUSYMATE_HOSTED_BUILD: ${{ inputs.hosted_build }}
         run: python3 scripts/assert-hosted-release.py "$RUNNER_TEMP/native-permission-live-guard.json"
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
         with:
           packages: platform-tools platforms;android-35 build-tools;34.0.0
           log-accepted-android-sdk-licenses: false
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
         with:
-          gradle-version: '8.9'
+          gradle-version: '9.6.0'
       - name: Verify immutable source
         run: python3 scripts/verify-release.py
       - name: Build SDK and consumer APK
         run: ./gradlew :sdk:assembleRelease :sdk:testDebugUnitTest :example-app:assembleDebug :example-app:testDebugUnitTest :sdk:lintRelease :example-app:lintDebug --no-daemon
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: busymate-ai-sdk-android-1.0.4
           path: sdk/build/outputs/aar/sdk-release.aar
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: busymate-sdk-example-android-1.0.4-debug
           path: example-app/build/outputs/apk/debug/example-app-debug.apk
 
   emulator:
     needs: build
+    # Not on pull requests (owner/coordinator 2026-11-26, Mac disk emergency): the shared Mac's emulator runs only for
+    # main, tags and manual dispatch, and refuses to start under 40 GiB free. PRs are judged by the k8s build job.
+    if: ${{ github.event_name != 'pull_request' }}
     runs-on: [self-hosted, macOS, bm-mac]
     # The job timeout includes the wait for the shared Mac's one-job lock (job-started hook), which can be long;
     # the emulator step itself is capped separately so a hang never holds the Mac.
@@ -68,28 +71,32 @@ jobs:
     env:
       ANDROID_ADB_SERVER_PORT: '5590'
     steps:
-      - uses: actions/checkout@v4
-      # Java resolves user.home from the account, not $HOME, and the runner sandbox denies the owner's home:
+      - name: Disk guard (the Mac must keep 40 GiB free)
+        run: |
+          free=$(df -g "$HOME" | awk 'NR==2{print $4}')
+          echo "free GiB: $free"
+          [ "$free" -ge 40 ] || { echo "::error::Mac has $free GiB free (< 40): emulator job refused"; exit 1; }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # point Java, Gradle and the Android tools at this runner's own home.
       - name: Keep Java, Gradle and Android state in the runner's home
         run: |
           { echo "JAVA_TOOL_OPTIONS=-Duser.home=$HOME"; echo "GRADLE_USER_HOME=$HOME/.gradle"; echo "ANDROID_USER_HOME=$HOME/.android"; } >> "$GITHUB_ENV"
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
         with:
           packages: platform-tools platforms;android-35 build-tools;34.0.0 emulator system-images;android-35;google_apis;arm64-v8a
           log-accepted-android-sdk-licenses: false
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
         with:
-          gradle-version: '8.9'
+          gradle-version: '9.6.0'
       - name: Run actual demo on an isolated Android emulator
         timeout-minutes: 30
         if: github.event_name != 'workflow_dispatch' || (inputs.hosted_commit == '' && inputs.hosted_build == '')
         run: bash scripts/test-runtime.sh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always() && (github.event_name != 'workflow_dispatch' || (inputs.hosted_commit == '' && inputs.hosted_build == ''))
         with:
           name: android-native-runtime-results
@@ -106,7 +113,7 @@ jobs:
           BUSYMATE_HOSTED_COMMIT: ${{ inputs.hosted_commit }}
           BUSYMATE_HOSTED_BUILD: ${{ inputs.hosted_build }}
         run: bash scripts/test-permissions.sh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always() && github.event_name == 'workflow_dispatch' && (inputs.hosted_commit != '' || inputs.hosted_build != '')
         with:
           name: android-first-tap-permission-results
@@ -126,4 +133,4 @@ jobs:
       - name: Build and emulator passed
         run: |
           test "${{ needs.build.result }}" = success
-          test "${{ needs.emulator.result }}" = success
+          if [ "${{ github.event_name }}" = pull_request ]; then test "${{ needs.emulator.result }}" = skipped; else test "${{ needs.emulator.result }}" = success; fi
