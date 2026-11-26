@@ -1,0 +1,32 @@
+# Dependabot (stack audit 2026-11-26). Weekly, one grouped PR per ecosystem, max 2 open.
+# CI runs the full test job for Dependabot PRs on our k8s runners; the kit deploy key is a Dependabot secret.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "05:00"
+      timezone: Europe/Chisinau
+    open-pull-requests-limit: 2
+    labels:
+      - dependencies
+    groups:
+      github-actions-all:
+        patterns:
+          - "*"
+  - package-ecosystem: gradle
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "05:00"
+      timezone: Europe/Chisinau
+    open-pull-requests-limit: 2
+    labels:
+      - dependencies
+    groups:
+      gradle-all:
+        patterns:
+          - "*"
