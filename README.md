@@ -12,7 +12,7 @@ git clone --branch 1.0.5 --depth 1 https://github.com/serebano/busymate-ai-sdk-a
 
 Add `include(":busymate-sdk")` and `project(":busymate-sdk").projectDir = file("vendor/busymate-ai-sdk-android/sdk")` to your app's `settings.gradle.kts`; add `implementation(project(":busymate-sdk"))` to the app dependencies. Your root pluginManagement must resolve the Android library and Kotlin Android plugins. This release is a source-module installation, not a claimed Maven Central/JitPack coordinate. A versioned release AAR is usable only when published and accompanied by the declared AndroidX dependencies (an AAR alone carries no dependency metadata).
 
-The reference build pins AGP 8.7.3, Gradle 8.9, Kotlin 2.0.21 and Java 17; compileSdk 35, minSdk 23. AndroidX dependencies are Activity 1.9.3, WebKit 1.12.1, Core 1.15.0 and Lifecycle Process 2.8.7. Compatible consuming projects can align their own versions. [AGP compatibility](https://developer.android.com/build/releases/agp-8-7-0-release-notes) and [WebKit releases](https://developer.android.com/jetpack/androidx/releases/webkit) explain these dependencies.
+The reference build pins AGP 9.3.3, Gradle 9.6.0, Kotlin 2.4.21 and Java 17; compileSdk 35, minSdk 23. AndroidX dependencies are Activity 1.9.3, WebKit 1.12.1, Core 1.15.0 and Lifecycle Process 2.8.7. Compatible consuming projects can align their own versions. [AGP compatibility](https://developer.android.com/build/releases/agp-9-3-0-release-notes) and [WebKit releases](https://developer.android.com/jetpack/androidx/releases/webkit) explain these dependencies.
 
 ## Integrate
 
@@ -40,7 +40,7 @@ This repository and its releases are the only source of the adapter. busymate.ai
 
 ## Build and versions
 
-Install Gradle 8.9, JDK 17 and Android SDK 35, then run `python3 scripts/verify-release.py` and `./gradlew :sdk:assembleRelease :sdk:testDebugUnitTest :example-app:assembleDebug :example-app:testDebugUnitTest :sdk:lintRelease :example-app:lintDebug`. CI runs that real library/consumer build and publishes its AAR as a build artifact. Physical permission dialogs, tenant backend identity and app-store rollout need separate device validation.
+Install Gradle 9.6.0, JDK 17 and Android SDK 35, then run `python3 scripts/verify-release.py` and `./gradlew :sdk:assembleRelease :sdk:testDebugUnitTest :example-app:assembleDebug :example-app:testDebugUnitTest :sdk:lintRelease :example-app:lintDebug`. CI runs that real library/consumer build and publishes its AAR as a build artifact. Physical permission dialogs, tenant backend identity and app-store rollout need separate device validation.
 
 Distribution 1.0.5 differs from identity wire 2/build 2.0.0, microphone wire 1/adapter 1.0.2 and files adapter 1.0.0. [Release manifest](release-manifest.json) pins the source hashes; identity bytes are unchanged since 1.0.0. This repo owns Android SDK releases; [busymate.ai official documentation](https://busymate.ai/docs/guides/mobile-in-app-support?utm_source=github&utm_medium=readme&utm_campaign=busymate-ai-sdk-android) and artifact mirrors pin these sources. See [changelog](CHANGELOG.md) and [v2 wire contract](CONTRACT-v2.md).
 

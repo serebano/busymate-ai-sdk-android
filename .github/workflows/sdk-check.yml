@@ -26,7 +26,7 @@ jobs:
     runs-on: ci-sdk-android
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: No GitHub-hosted runners (runs-on lint)
         run: python3 .github/runs-on-lint.py
       - name: Require the declared native-chat live revision before permission acceptance
@@ -35,11 +35,11 @@ jobs:
           BUSYMATE_HOSTED_COMMIT: ${{ inputs.hosted_commit }}
           BUSYMATE_HOSTED_BUILD: ${{ inputs.hosted_build }}
         run: python3 scripts/assert-hosted-release.py "$RUNNER_TEMP/native-permission-live-guard.json"
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
         with:
           packages: platform-tools platforms;android-35 build-tools;34.0.0
           log-accepted-android-sdk-licenses: false
@@ -50,11 +50,11 @@ jobs:
         run: python3 scripts/verify-release.py
       - name: Build SDK and consumer APK
         run: ./gradlew :sdk:assembleRelease :sdk:testDebugUnitTest :example-app:assembleDebug :example-app:testDebugUnitTest :sdk:lintRelease :example-app:lintDebug --no-daemon
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: busymate-ai-sdk-android-1.0.4
           path: sdk/build/outputs/aar/sdk-release.aar
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: busymate-sdk-example-android-1.0.4-debug
           path: example-app/build/outputs/apk/debug/example-app-debug.apk
@@ -68,17 +68,16 @@ jobs:
     env:
       ANDROID_ADB_SERVER_PORT: '5590'
     steps:
-      - uses: actions/checkout@v4
-      # Java resolves user.home from the account, not $HOME, and the runner sandbox denies the owner's home:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # point Java, Gradle and the Android tools at this runner's own home.
       - name: Keep Java, Gradle and Android state in the runner's home
         run: |
           { echo "JAVA_TOOL_OPTIONS=-Duser.home=$HOME"; echo "GRADLE_USER_HOME=$HOME/.gradle"; echo "ANDROID_USER_HOME=$HOME/.android"; } >> "$GITHUB_ENV"
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
         with:
           packages: platform-tools platforms;android-35 build-tools;34.0.0 emulator system-images;android-35;google_apis;arm64-v8a
           log-accepted-android-sdk-licenses: false
@@ -89,7 +88,7 @@ jobs:
         timeout-minutes: 30
         if: github.event_name != 'workflow_dispatch' || (inputs.hosted_commit == '' && inputs.hosted_build == '')
         run: bash scripts/test-runtime.sh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always() && (github.event_name != 'workflow_dispatch' || (inputs.hosted_commit == '' && inputs.hosted_build == ''))
         with:
           name: android-native-runtime-results
@@ -106,7 +105,7 @@ jobs:
           BUSYMATE_HOSTED_COMMIT: ${{ inputs.hosted_commit }}
           BUSYMATE_HOSTED_BUILD: ${{ inputs.hosted_build }}
         run: bash scripts/test-permissions.sh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always() && github.event_name == 'workflow_dispatch' && (inputs.hosted_commit != '' || inputs.hosted_build != '')
         with:
           name: android-first-tap-permission-results
