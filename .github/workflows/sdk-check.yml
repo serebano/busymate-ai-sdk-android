@@ -61,9 +61,10 @@ jobs:
 
   emulator:
     needs: build
-    # Not on pull requests (owner/coordinator 2026-11-26, Mac disk emergency): the shared Mac's emulator runs only for
-    # main, tags and manual dispatch, and refuses to start under 40 GiB free. PRs are judged by the k8s build job.
-    if: ${{ github.event_name != 'pull_request' }}
+    # Manual dispatch only (owner/coordinator 2026-11-26, Mac load + disk incidents): the shared Mac's emulator never
+    # runs for push, tags or pull requests. It waits for load1 < 20 and refuses to start under 40 GiB free. The JVM /
+    # unit-test / lint part (sdk + example-app, incl. testDebugUnitTest) stays in the k8s build job on every push.
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: [self-hosted, macOS, bm-mac]
     # The job timeout includes the wait for the shared Mac's one-job lock (job-started hook), which can be long;
     # the emulator step itself is capped separately so a hang never holds the Mac.
@@ -76,6 +77,15 @@ jobs:
           free=$(df -g "$HOME" | awk 'NR==2{print $4}')
           echo "free GiB: $free"
           [ "$free" -ge 40 ] || { echo "::error::Mac has $free GiB free (< 40): emulator job refused"; exit 1; }
+      - name: Wait for the Mac load (1-minute load < 20, up to 20 min)
+        run: |
+          for i in $(seq 1 40); do
+            l=$(sysctl -n vm.loadavg | awk '{print int($2)}')
+            echo "load1: $l"
+            [ "$l" -lt 20 ] && exit 0
+            sleep 30
+          done
+          echo "::error::Mac load1 stayed >= 20: emulator job refused"; exit 1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # point Java, Gradle and the Android tools at this runner's own home.
       - name: Keep Java, Gradle and Android state in the runner's home
@@ -133,4 +143,4 @@ jobs:
       - name: Build and emulator passed
         run: |
           test "${{ needs.build.result }}" = success
-          if [ "${{ github.event_name }}" = pull_request ]; then test "${{ needs.emulator.result }}" = skipped; else test "${{ needs.emulator.result }}" = success; fi
+          if [ "${{ github.event_name }}" = workflow_dispatch ]; then test "${{ needs.emulator.result }}" = success; else test "${{ needs.emulator.result }}" = skipped; fi
