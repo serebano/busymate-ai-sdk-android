@@ -12,7 +12,7 @@ kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarg
 dependencies {
     // In this repository the core module is :sdk; a host that vendors it names it :busymate-sdk (README).
     api(project(if (findProject(":busymate-sdk") != null) ":busymate-sdk" else ":sdk"))
-    api(platform("androidx.compose:compose-bom:2025.07.00"))
+    api(platform("androidx.compose:compose-bom:2026.11.01"))
     api("androidx.compose.material3:material3")
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.ui:ui")
