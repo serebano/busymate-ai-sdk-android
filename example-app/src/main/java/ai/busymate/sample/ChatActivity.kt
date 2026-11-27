@@ -12,6 +12,7 @@ import android.webkit.WebViewClient
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.widget.*
+import ai.busymate.Busymate
 import ai.busymate.bridge.BusymateBridge
 import ai.busymate.whitelabel.BusymateFiles
 import ai.busymate.whitelabel.BusymateLaunch
@@ -65,6 +66,14 @@ class ChatActivity : ComponentActivity() {
         }
         button("Sign out / clear verified identity") { DemoSession.signedIn = false; BusymateBridge.accountChanged(); log("Signed out: state event sent.") }
         button("Notify account changed / refresh state") { BusymateBridge.accountChanged(); log("Current account state emitted.") }
+        // What the chat itself does when the mate writes while it is closed, sent from the loaded page through the
+        // real channel (origin rule, schema check). For trying the badge and the bubble: go back to the main screen after.
+        button("Send a test follow-up signal from the page") {
+            webView.evaluateJavascript("(function(){var b=window.BusymateEvents||window.BusymateBridge;if(!b)return 'no bridge';" +
+                "b.postMessage(JSON.stringify({type:'support.chat.v1.unread',n:1,t:'This is a test follow-up from the example app.',at:new Date().toISOString()}));return 'sent'})()") {
+                log("Test follow-up signal: $it. Go back to see the badge and the bubble.")
+            }
+        }
         button("Reload chat") { webView.reload(); log("Chat reload requested.") }
         button("Open app microphone settings") { startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))) }
         button("Reset demo (guest / defaults)") { DemoSession.settings = DemoSettings(); DemoSession.signedIn = false; recreate() }
@@ -92,6 +101,10 @@ class ChatActivity : ComponentActivity() {
             log = { log(it) }, close = { finish() },
             replaced = { replacement -> webView = replacement; log("Identity SDK replaced renderer WebView.") },
         ))
+        // Follow-ups: the chat tells the app what is unread, so the main screen can show the badge and the bubble.
+        // After BusymateBridge.install (both want the JS name "BusymateBridge"; the identity pipe keeps it).
+        Busymate.init(this, current.busymateConfig())
+        if (Busymate.attach(webView)) log("Follow-ups channel attached.") else log("Follow-ups channel unavailable on this WebView.")
         // The chat's attach (+) button: Android WebView shows no picker unless the
         // WebChromeClient answers onShowFileChooser. BusymateMicrophone installs this
         // too; calling it here keeps + working with the microphone adapter off.
@@ -118,6 +131,7 @@ class ChatActivity : ComponentActivity() {
     override fun onResume() { super.onResume(); if (::events.isInitialized) log("Activity resumed; SDK observes foreground state.") }
     override fun onDestroy() {
         if (::webView.isInitialized) {
+            Busymate.detach(webView)
             if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
                 WebViewCompat.removeWebMessageListener(webView, "BusymateMicrophone")
                 WebViewCompat.removeWebMessageListener(webView, BusymateFiles.NAME)

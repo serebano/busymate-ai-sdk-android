@@ -15,7 +15,7 @@ import android.content.Context
  */
 object BusymateLaunch {
     /** The SDK release (`release-manifest.json` `version`; `scripts/verify-release.py` refuses a mismatch). */
-    const val SDK_VERSION = "1.0.5"
+    const val SDK_VERSION = "1.1.0"
 
     private val versionPattern = Regex("^[0-9A-Za-z.+-]{1,32}$")
     private val appIdPattern = Regex("^[A-Za-z][A-Za-z0-9._-]{1,127}$")

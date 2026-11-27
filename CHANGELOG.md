@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.1.0
+
+Follow-ups on your app's own screens: a message channel between the chat WebView and the app, an unread badge and a message bubble (owner ask 2026-11-27, "follow-ups on every surface").
+
+- **Channel.** `Busymate.attach(webView)` registers a `WebViewCompat.addWebMessageListener` named `BusymateEvents`, and `BusymateBridge` when that name is free (the frozen kit v2 identity pipe keeps the name when installed, so call `attach` after `BusymateBridge.install`). Allowed origins are only the chat's own: `https://busymate.ai`, `https://<assistant>.busymate.ai`, the origin of your chat URL and the exact https origins you list. No `addJavascriptInterface`. Messages are schema-checked (at most 4 KB) and unknown types are dropped. Handled: `support.chat.v1.unread` `{n, t, at}` and `support.chat.v1.identity` `{v}`; sent: `support.chat.v1.open` when the person opens the chat from the badge or bubble.
+- **API.** `Busymate.init(context, BusymateConfig(assistant))`, `Busymate.unread` (`StateFlow<BusymateUnread(count, preview, at)>`), `Busymate.teaser`, `OnUnreadListener` / `OnTeaserListener` for Java and callbacks, `refreshUnread()`, `openChat()`, `dismissTeaser()`, `reset()`.
+- **With the WebView closed.** `refreshUnread()` sends `POST <chat origin>/api/chat/unread` with `{a, v}`; it runs by itself on init, on every app foreground (`ProcessLifecycleOwner` `ON_START`) and when the chat screen closes. One small request, no polling, no background work, no permission.
+- **Token.** The visitor token is encrypted with a non-exportable Android Keystore key (AES-256-GCM, bound to the assistant), kept in private preferences and never logged. A value that does not open is deleted (fail closed).
+- **Components (Material 3, light and dark, font scaling, TalkBack).** `BusymateLauncherButton` (count badge) and `BusymateTeaserBubble` (preview, a dismiss control that leaves the message unread, tap opens the chat at the conversation). Views in `sdk` (`ai.busymate.view`, no Material library needed); Jetpack Compose in the new optional module `sdk-compose` (`ai.busymate.compose`), so apps without Compose take on no Compose dependency.
+- **Dependencies.** `sdk` adds kotlinx-coroutines-core 1.10.2 (for `StateFlow`). `sdk-compose` uses the Compose BOM 2025.07.00.
+- **Example app.** A main screen (`HomeActivity`) with the button and the bubble in both flavours; the chat moved behind it (`ChatActivity`). Guide: `docs/follow-ups.md`.
+- 35 new JVM tests (message schema and origins, token store with real AES-GCM, badge/bubble rules, server answers). Identity v1/v2, microphone adapter 1.0.2 and files adapter 1.0.0 bytes are unchanged; `BusymateLaunch.kt` changes only its version constant. Version 1.0.5 stays immutable.
+
 ## 1.0.5
 
 Launch parameters. New `BusymateLaunch.kt` (launch 1.0.0): `BusymateLaunch.chatUrl(chatUrl, context)` appends `sdkVersion=<this SDK's version>` and `hostAppId=<your applicationId>` (only when it matches `^[A-Za-z][A-Za-z0-9._-]{1,127}$`) to the chat address you load, so the workspace's Insights can show which SDK release, in which app, a chat ran in. Your own query items (`channel=android`) are kept. No new request, permission or stored id. Wrap the URL you load: `webView.loadUrl(BusymateLaunch.chatUrl(chatUrl, context))`; the example app does. Identity v1/v2 and microphone/files sources are unchanged. Version 1.0.4 stays immutable.

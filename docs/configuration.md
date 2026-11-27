@@ -29,7 +29,7 @@ V1 Android methods: `refreshIdentity`, `identityChanged`, `signedOut(reason)` an
 
 ## Launch parameters
 
-`BusymateLaunch.chatUrl(chatUrl, context)` returns the chat address with two extra query items: `sdkVersion` (this SDK's release, e.g. `1.0.5`) and `hostAppId` (your `applicationId`; left out unless it matches `^[A-Za-z][A-Za-z0-9._-]{1,127}$`). The hosted page reads them once from its own URL to label the chat's analytics events by SDK release and host app. No request, permission or stored identifier is added; your own query items (`channel=android`) are kept. A string overload `chatUrl(chatUrl, hostAppId)` exists for tests.
+`BusymateLaunch.chatUrl(chatUrl, context)` returns the chat address with two extra query items: `sdkVersion` (this SDK's release, e.g. `1.1.0`) and `hostAppId` (your `applicationId`; left out unless it matches `^[A-Za-z][A-Za-z0-9._-]{1,127}$`). The hosted page reads them once from its own URL to label the chat's analytics events by SDK release and host app. No request, permission or stored identifier is added; your own query items (`channel=android`) are kept. A string overload `chatUrl(chatUrl, hostAppId)` exists for tests.
 
 ## Attachments (the + button)
 

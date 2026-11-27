@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Override any of these in your app's resources to translate or reword them. -->
+<resources>
+    <string name="busymate_launcher_label">Chat</string>
+    <plurals name="busymate_launcher_unread">
+        <item quantity="one">Chat, %d unread message</item>
+        <item quantity="other">Chat, %d unread messages</item>
+    </plurals>
+    <string name="busymate_teaser_title">New message</string>
+    <string name="busymate_teaser_open">Open chat</string>
+    <string name="busymate_teaser_dismiss">Dismiss</string>
+</resources>

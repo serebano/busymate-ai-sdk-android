@@ -1,6 +1,6 @@
 {
   "sdk": "Busymate AI android",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "identityWire": {
     "legacy": 1,
     "v2": 2,
@@ -13,7 +13,17 @@
     "sdk/src/main/java/ai/busymate/BusymateMicrophone.kt": "d123aac94f3840002d094ccb9fdee2b09e824313803ca1064fee6dd3a31c8fd5",
     "sdk/src/main/java/ai/busymate/BusymateBridge.kt": "cccf0798a509355ff525e18356f63ea2e9fb5f93a8fd78c15fc230c452a711ef",
     "sdk/src/main/java/ai/busymate/BusymateFiles.kt": "24a54e38b93a2597974412c9c719152efc507a5890ff1878e2137adbc69171ed",
-    "sdk/src/main/java/ai/busymate/BusymateLaunch.kt": "8147691d1e8df26ce013a7b6db5dcf4dba2b57d6a240adcf374e04bc3f201de2"
+    "sdk/src/main/java/ai/busymate/BusymateLaunch.kt": "7a24e7ace814bf5090cc8ee22f1db752ed7e1fbeb5bc775b6c89a2e274318198",
+    "sdk/src/main/java/ai/busymate/followups/Busymate.kt": "169be0e531b3ee720b2fc94328171d8a65e1236934afa7c22f51dd3bab898de5",
+    "sdk/src/main/java/ai/busymate/followups/BusymateMessages.kt": "ef507264c6c43fa5f3038b88e4f1f3c8e29a2470ce27913ad4b9ce4c794f5dd7",
+    "sdk/src/main/java/ai/busymate/followups/BusymateTokenStore.kt": "f238fec0c4db65e315ab101116168bdefc7c0fbcd95883a7f9b33eb7a818d8e4",
+    "sdk/src/main/java/ai/busymate/followups/BusymateUnread.kt": "46361323e88791269199bef19c58a0f4c46e30178662043e5fe4adbbd0d61f10",
+    "sdk/src/main/java/ai/busymate/followups/BusymateUnreadClient.kt": "8d9f227b3256029c970115797579c3f4007637c76006e8464aee5f960e8838b6",
+    "sdk/src/main/java/ai/busymate/followups/BusymateUnreadState.kt": "9f316fef1b09d511943ab40548a81bacc5e52ef61de5de528933f3c91b28d694",
+    "sdk/src/main/java/ai/busymate/followups/view/BusymateColors.kt": "ee1ae4805e5c7a0e4b0a713e7ca1e98d8df7c0268d18be41d190fd4018eca104",
+    "sdk/src/main/java/ai/busymate/followups/view/BusymateLauncherButton.kt": "ad8391ad7af1d7b9b9dd715fe5043438bf6eef244a6a30234966125c80b9d873",
+    "sdk/src/main/java/ai/busymate/followups/view/BusymateTeaserBubble.kt": "909ca4087207745ef76cf89174fb63f9eb334388aa27bd7189933e7d16f601cf",
+    "sdk-compose/src/main/java/ai/busymate/compose/BusymateFollowUps.kt": "b1d744ee0608e27ee1be64b635cc568ca7932b1d73f4e3d58c4c53c7a3bdd9eb"
   },
   "adapterAssets": [
     "sdk/src/main/java/ai/busymate/BusymateMicrophone.kt",
@@ -21,5 +31,6 @@
     "sdk/src/main/java/ai/busymate/BusymateLaunch.kt"
   ],
   "filesAdapter": "1.0.0",
-  "launchParameters": "1.0.0"
+  "launchParameters": "1.0.0",
+  "followUps": "1.0.0"
 }
