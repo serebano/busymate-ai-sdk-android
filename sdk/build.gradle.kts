@@ -12,8 +12,8 @@ dependencies {
     implementation("androidx.core:core:1.15.0")
     implementation("androidx.lifecycle:lifecycle-process:2.8.7")
     // Busymate.unread is a StateFlow.
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
     testImplementation("junit:junit:4.13.2")
     // android.jar stubs org.json in JVM unit tests; the bridge schema tests need the real parser.
-    testImplementation("org.json:json:20250517")
+    testImplementation("org.json:json:20260814")
 }
