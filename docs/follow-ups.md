@@ -51,7 +51,7 @@ chat.setOnClickListener { openChatScreen() }
 bubble.setOnClickListener { openChatScreen() }
 ```
 
-Colours are read from your Material 3 theme (`colorPrimaryContainer`, `colorSurfaceContainerHigh`, …). Without one they use the device's dynamic colours (Android 12+) or the Material 3 baseline palette. Set `colors = BusymateColors(…)` on either view for your own. `setIcon(drawable)` replaces the button's icon. The bubble manages its own visibility.
+Colours are read from your Material 3 theme (`colorPrimaryContainer`, `colorSurfaceContainerHigh`, …). Without one they use the device's dynamic colours (Android 12+) or the Material 3 baseline palette. Set `colors = BusymateColors(…)` on either view for your own. `setIcon(drawable)` replaces the button's icon. The button measures 56dp like the Compose one; its badge overhangs the top end corner by 4dp, so it turns off `clipChildren` on its parent. The bubble manages its own visibility.
 
 What they do:
 

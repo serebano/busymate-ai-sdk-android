@@ -16,6 +16,7 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.view.ViewOutlineProvider
 import android.view.animation.OvershootInterpolator
 import android.widget.Button
@@ -52,8 +53,8 @@ class BusymateLauncherButton @JvmOverloads constructor(
         set(value) { field = value; paint() }
 
     init {
-        val inset = dp(8f)
-        setPadding(inset, inset, inset, inset)
+        // Exactly the button's 56dp, like the Compose component, so both sit on the same insets. The badge
+        // and the shadow draw a little outside; see onAttachedToWindow.
         clipToPadding = false
         clipChildren = false
         isClickable = true
@@ -111,6 +112,8 @@ class BusymateLauncherButton @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        // The badge overhangs the corner, so the parent must not clip it (what Material's BadgeUtils does too).
+        (parent as? ViewGroup)?.let { it.clipChildren = false; it.clipToPadding = false }
         if (!isInEditMode) Busymate.addOnUnreadListener(listener)
     }
 

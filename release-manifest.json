@@ -21,7 +21,7 @@
     "sdk/src/main/java/ai/busymate/followups/BusymateUnreadClient.kt": "8d9f227b3256029c970115797579c3f4007637c76006e8464aee5f960e8838b6",
     "sdk/src/main/java/ai/busymate/followups/BusymateUnreadState.kt": "9f316fef1b09d511943ab40548a81bacc5e52ef61de5de528933f3c91b28d694",
     "sdk/src/main/java/ai/busymate/followups/view/BusymateColors.kt": "ee1ae4805e5c7a0e4b0a713e7ca1e98d8df7c0268d18be41d190fd4018eca104",
-    "sdk/src/main/java/ai/busymate/followups/view/BusymateLauncherButton.kt": "35a8f14ccd8721c75a6e68c4ab89702f8f7911de3eef5bfe4b110f2b4d6a4a01",
+    "sdk/src/main/java/ai/busymate/followups/view/BusymateLauncherButton.kt": "ad8391ad7af1d7b9b9dd715fe5043438bf6eef244a6a30234966125c80b9d873",
     "sdk/src/main/java/ai/busymate/followups/view/BusymateTeaserBubble.kt": "909ca4087207745ef76cf89174fb63f9eb334388aa27bd7189933e7d16f601cf",
     "sdk-compose/src/main/java/ai/busymate/compose/BusymateFollowUps.kt": "b1d744ee0608e27ee1be64b635cc568ca7932b1d73f4e3d58c4c53c7a3bdd9eb"
   },
