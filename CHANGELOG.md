@@ -11,7 +11,7 @@ Follow-ups on your app's own screens: a message channel between the chat WebView
 - **Components (Material 3, light and dark, font scaling, TalkBack).** `BusymateLauncherButton` (count badge) and `BusymateTeaserBubble` (preview, a dismiss control that leaves the message unread, tap opens the chat at the conversation). Views in `sdk` (`ai.busymate.view`, no Material library needed); Jetpack Compose in the new optional module `sdk-compose` (`ai.busymate.compose`), so apps without Compose take on no Compose dependency.
 - **Dependencies.** `sdk` adds kotlinx-coroutines-core 1.10.2 (for `StateFlow`). `sdk-compose` uses the Compose BOM 2025.07.00.
 - **Example app.** A main screen (`HomeActivity`) with the button and the bubble in both flavours; the chat moved behind it (`ChatActivity`). Guide: `docs/follow-ups.md`.
-- 45 new JVM tests (message schema and origins, token store with real AES-GCM, badge/bubble rules, server answers). Identity v1/v2, microphone adapter 1.0.2 and files adapter 1.0.0 bytes are unchanged; `BusymateLaunch.kt` changes only its version constant. Version 1.0.5 stays immutable.
+- 35 new JVM tests (message schema and origins, token store with real AES-GCM, badge/bubble rules, server answers). Identity v1/v2, microphone adapter 1.0.2 and files adapter 1.0.0 bytes are unchanged; `BusymateLaunch.kt` changes only its version constant. Version 1.0.5 stays immutable.
 
 ## 1.0.5
 
